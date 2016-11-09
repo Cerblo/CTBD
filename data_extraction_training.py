@@ -74,11 +74,9 @@ def insert_tweet_information(user_id):
             tweet_ids.append(tweet.id)
 
             tweet_object = {}
-
             tweet_object['tweet_id'] = tweet.id
             tweet_object['user_id'] = user_id
             tweet_object['message'] = tweet.text
-            tweet_object['']
             tweet_object['hashtag'] = tweet.entities['hashtags']
             tweet_object['date'] = tweet.created_at
 
@@ -117,6 +115,8 @@ if __name__ == "__main__":
 
     import tweepy
     import time
+    import traceback
+    import logging
     from pymongo import MongoClient
     start=time.time()
     client = MongoClient()
@@ -142,11 +142,10 @@ if __name__ == "__main__":
 
     while 1:
         try:
-            for label in [False,True]:
-                print('Extraction of %s information' % candidates[label])
-                extract_information(label, 100)
-        except:
-            time.sleep(60*15)
+            extract_information(True, 100)
+        except Exception as e:
+            logging.error(e, exc_info=True)
+            time.sleep(15*60)
             pass
 
     print(time.time()-start)
