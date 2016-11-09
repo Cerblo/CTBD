@@ -14,10 +14,10 @@ def insert_user_information(api_user, label, count):
     user = {}
     user['id'] = api_user.id
     b=api.show_friendship(source_id=user['id'], target_id=candidates[1-label])[0].following
-    if not b:
+    if not b and 'US' in user.time_zone and api_user.lang == 'en':
 
         print('User only friend with %s' % label)
-        user['tweets'] = insert_tweet_information(user['id'])
+        insert_tweet_information(user['id'])
         user['location'] = api_user.location
         user['nb_tweets'] = api_user.statuses_count
         user['nb_followers'] = api_user.followers_count
