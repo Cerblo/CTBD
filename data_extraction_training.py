@@ -13,7 +13,7 @@ def insert_user_information(api_user, label, count):
 
     user = {}
     user['id'] = api_user.id
-    b=api.show_friendship(source_id=user['id'], target_id=candidates[1-label])[0].following
+    b = api.show_friendship(source_id=user['id'], target_id=candidates[1-label])[0].following
     if not b and api_user.lang == 'en':
 
         print('User only friend with %s' % label)
@@ -78,7 +78,6 @@ def insert_tweet_information(user_id):
             tweet_object['tweet_id'] = tweet.id
             tweet_object['user_id'] = user_id
             tweet_object['message'] = tweet.text
-            tweet_object['']
             tweet_object['hashtag'] = tweet.entities['hashtags']
             tweet_object['date'] = tweet.created_at
 
@@ -114,7 +113,7 @@ def extract_information(label, nb_users):
 
 
 if __name__ == "__main__":
-
+    import logging
     import tweepy
     import time
     from pymongo import MongoClient
@@ -137,15 +136,16 @@ if __name__ == "__main__":
     trump = api.get_user('realDonaldTrump')
     clinton = api.get_user('HillaryClinton')
 
-    candidates={False:'Trump',True:'Clinton'}
+    candidates={False:'Trump', True:'Clinton'}
     # Trump retrieve
+    label = False
 
-    while 1: # Boucle boucle boucle
+    while 1:
         try:
-            for label in [False,True]:
-                print('Extraction of %s information' % candidates[label])
-                extract_information(label, 100)
-        except:
+            extract_information(label, 100)
+        except Exception as e:
+            logging.error(e, exc_info=True)
+            print('I sleep')
             time.sleep(60*15)
             pass
 
