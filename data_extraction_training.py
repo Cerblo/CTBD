@@ -140,7 +140,7 @@ if __name__ == "__main__":
     candidates={False:'Trump',True:'Clinton'}
     # Trump retrieve
 
-    while 1:
+    while 1: # Boucle boucle boucle
         try:
             for label in [False,True]:
                 print('Extraction of %s information' % candidates[label])
