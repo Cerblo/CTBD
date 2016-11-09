@@ -140,8 +140,13 @@ if __name__ == "__main__":
     candidates={False:'Trump',True:'Clinton'}
     # Trump retrieve
 
-    for label in [False,True]:
-        print('Extraction of %s information' % candidates[label])
-        extract_information(label, 100)
+    while 1:
+        try:
+            for label in [False,True]:
+                print('Extraction of %s information' % candidates[label])
+                extract_information(label, 100)
+        except:
+            time.sleep(60*15)
+            pass
 
     print(time.time()-start)
