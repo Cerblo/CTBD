@@ -13,7 +13,7 @@ def insert_user_information(api_user, label, count):
 
     user = {}
     user['id'] = api_user.id
-    b=api.show_friendship(source_id=user['id'], target_id=candidates[1-label])[0].following
+    b = api.show_friendship(source_id=user['id'], target_id=candidates[1-label])[0].following
     if not b and api_user.lang == 'en':
 
         print('User only friend with %s' % label)
@@ -112,7 +112,7 @@ def extract_information(label, nb_users):
 
 
 if __name__ == "__main__":
-
+    import logging
     import tweepy
     import time
     import traceback
@@ -137,15 +137,19 @@ if __name__ == "__main__":
     trump = api.get_user('realDonaldTrump')
     clinton = api.get_user('HillaryClinton')
 
-    candidates={False:'Trump',True:'Clinton'}
+    candidates={False:'Trump', True:'Clinton'}
     # Trump retrieve
+    label = False
 
-    while 1: # Boucle boucle boucle
+    while 1:
         try:
-            extract_information(True, 100)
+
+            extract_information(label, 100)
         except Exception as e:
             logging.error(e, exc_info=True)
-            time.sleep(15*60)
+            print('I sleep')
+            time.sleep(60*15)
+
             pass
 
     print(time.time()-start)
