@@ -14,7 +14,7 @@ def insert_user_information(api_user, label, count):
     user = {}
     user['id'] = api_user.id
     b = api.show_friendship(source_id=user['id'], target_id=candidates[1-label])[0].following
-    if not b and api_user.lang == 'en':
+    if  not b and api_user.lang == 'en' and not [i for i in db.users.find({'id': user['id']})]:
 
         print('Start insertion process')
         insert_tweet_information(user['id'])
@@ -25,7 +25,7 @@ def insert_user_information(api_user, label, count):
         user['label'] = label
         db.users.insert_one(user)
         count += 1
-        print('%s has been inserted' % api_user.name)
+        print('User has been inserted')
     return count
 
 
@@ -100,10 +100,10 @@ def extract_information(label, nb_users):
         for user in followers:
             if count < nb_users:
                 api_user = api.get_user(id=user)
-                print(api_user.name, api_user.location, api_user.statuses_count, api_user.time_zone,api_user.lang)
+                # print(api_user.name, api_user.location, api_user.statuses_count, api_user.time_zone,api_user.lang)
 
                 # Here the location is not filtered, as we want more data and to do a Twitter poll
-                if not [i for i in db.users.find({'id':user})] and api_user.statuses_count > 100:
+                if api_user.statuses_count > 100:
                     count = insert_user_information(api_user, label, count) # Condition inserted inside
                     print(count)
             else:
@@ -145,7 +145,7 @@ if __name__ == "__main__":
         except Exception as e:
             logging.error(e, exc_info=True)
             print('I sleep')
-            time.sleep(60*15)
+            time.sleep(60)
 
             pass
 
