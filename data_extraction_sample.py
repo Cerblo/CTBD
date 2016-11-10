@@ -1,31 +1,23 @@
 
-def insert_user_information(api_user, label, count):
+def insert_user_information(api_user, count):
     '''
 
     :param api_user: user object from twitter API
-    :param label:0 or 1, depending on from which this user comes from (Hillary's list or Trump's list?)
     :param trump_id:
     :param clinton_id:
     :return:
     '''
 
-    candidates = {0:trump.id, 1:clinton.id}
 
     user = {}
     user['id'] = api_user.id
-    b=api.show_friendship(source_id=user['id'], target_id=candidates[1-label])[0].following
-    if not b and 'US' in user.time_zone and api_user.lang == 'en':
-
-        print('User only friend with %s' % label)
-        insert_tweet_information(user['id'])
-        user['location'] = api_user.location
-        user['nb_tweets'] = api_user.statuses_count
-        user['nb_followers'] = api_user.followers_count
-        user['description'] = api_user.description
-        user['label'] = label
-        db.users.insert_one(user)
-        count += 1
-        print('%s has inserted' % api_user.name)
+    insert_tweet_information(user['id'])
+    user['location'] = api_user.location
+    user['nb_tweets'] = api_user.statuses_count
+    user['nb_followers'] = api_user.followers_count
+    user['description'] = api_user.description
+    db.users.insert_one(user)
+    count += 1
     return count
 
 
@@ -82,30 +74,36 @@ def insert_tweet_information(user_id):
             tweet_object['date'] = tweet.created_at
 
             db.tweets.insert(tweet_object)
-        print('%d tweets has been added' % len(tweet_ids))
+        print('tweets has been added')
         return tweet_ids
     except tweepy.error.TweepError:
         return []
 
 
-def extract_information(label, nb_users):
+def extract_information(nb_users):
 
     count = 0
-    candidates = {0:trump, 1:clinton}
 
 
     while count < nb_users:
 
-        followers = candidates[label].followers_ids()
+        followers = twitter_account.followers_ids()
 
         for user in followers:
             if count < nb_users:
                 api_user = api.get_user(id=user)
-                print(api_user.name, api_user.location, api_user.statuses_count, api_user.time_zone,api_user.lang)
+                print("test user")
 
-                if not [i for i in db.users.find({'id':user})] and len(api_user.location)>0 and api_user.statuses_count > 100:
-                    print('Start insertion process')
-                    count = insert_user_information(api_user, label, count) # Condition inserted inside
+                if len(api_user.location)>0 \
+                    and api_user.statuses_count > 100 \
+                    and not (api_user.time_zone is None) \
+                    and 'US' in api_user.time_zone \
+                    and api_user.lang == 'en'\
+                    and not [i for i in db.users.find({'id':user})]:
+                        print('Start insertion process')
+                        count = insert_user_information(api_user, count) # Condition inserted inside
+                else:
+                    print('Irrelevant user')
             else:
                 break
 
@@ -113,7 +111,8 @@ def extract_information(label, nb_users):
 if __name__ == "__main__":
 
     import tweepy
-
+    import time
+    import logging
     from pymongo import MongoClient
 
     client = MongoClient()
@@ -131,12 +130,14 @@ if __name__ == "__main__":
     auth.set_access_token(api_key, api_secret)
     api = tweepy.API(auth, wait_on_rate_limit=True)
 
-    trump = api.get_user('realDonaldTrump')
-    clinton = api.get_user('HillaryClinton')
 
-    candidates={False:'Trump',True:'Clinton'}
-    # Trump retrieve
+    twitter_account = api.get_user('Twitter')
 
-    for label in [False,True]:
-        print('Extraction of %s information' % candidates[label])
-        extract_information(label, 1)
+
+    while 1:  # Boucle boucle boucle
+        try:
+            extract_information(100)
+        except Exception as e:
+            logging.error(e, exc_info=True)
+            time.sleep(60)
+            pass
