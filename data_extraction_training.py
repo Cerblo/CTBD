@@ -16,7 +16,7 @@ def insert_user_information(api_user, label, count):
     b = api.show_friendship(source_id=user['id'], target_id=candidates[1-label])[0].following
     if not b and api_user.lang == 'en':
 
-        print('User only friend with %s' % label)
+        print('Start insertion process')
         insert_tweet_information(user['id'])
         user['location'] = api_user.location
         user['nb_tweets'] = api_user.statuses_count
@@ -25,7 +25,7 @@ def insert_user_information(api_user, label, count):
         user['label'] = label
         db.users.insert_one(user)
         count += 1
-        print('%s has inserted' % api_user.name)
+        print('%s has been inserted' % api_user.name)
     return count
 
 
@@ -104,7 +104,6 @@ def extract_information(label, nb_users):
 
                 # Here the location is not filtered, as we want more data and to do a Twitter poll
                 if not [i for i in db.users.find({'id':user})] and api_user.statuses_count > 100:
-                    print('Start insertion process')
                     count = insert_user_information(api_user, label, count) # Condition inserted inside
                     print(count)
             else:
@@ -115,7 +114,6 @@ if __name__ == "__main__":
     import logging
     import tweepy
     import time
-    import traceback
     import logging
     from pymongo import MongoClient
     start=time.time()
@@ -143,8 +141,7 @@ if __name__ == "__main__":
 
     while 1:
         try:
-
-            extract_information(label, 100)
+            extract_information(label, 5000)
         except Exception as e:
             logging.error(e, exc_info=True)
             print('I sleep')
