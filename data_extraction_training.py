@@ -14,7 +14,8 @@ def insert_user_information(api_user, label, count):
     user = {}
     user['id'] = api_user.id
     b = api.show_friendship(source_id=user['id'], target_id=candidates[1-label])[0].following
-    if  not b and api_user.lang == 'en' and not [i for i in db.users.find({'id': user['id']})]:
+
+    if not b and api_user.lang == 'en' and not [i for i in db.users.find({'id': user['id']})]:
 
         print('Start insertion process')
         insert_tweet_information(user['id'])
@@ -26,6 +27,7 @@ def insert_user_information(api_user, label, count):
         db.users.insert_one(user)
         count += 1
         print('User has been inserted')
+
     return count
 
 
