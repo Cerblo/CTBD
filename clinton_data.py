@@ -123,10 +123,10 @@ if __name__ == "__main__":
 
 
 
-    consumer_key = 'JcT9eaN3Fc3f9POcFXF4F2wIM'
-    consumer_secret = 'OkpbxaK7e1epLyhZalzdvSlAJMf1O99F3F4wTmGscfzS85ZI82'
-    api_key = '792840280848343042-UZ6JqLW0jHbYdPo2h0ODQtS1gdsYJwN'
-    api_secret = 'CpnWsqioUGqrrQTkWTxKEHWNsxXmrN1wkRx8O5ELR8mzF'
+    consumer_key = 'jIX7CbqguhKU7Ve816NI0P65I'
+    consumer_secret = 'ktM49siWjPbR0cwmgtKCT2VKsyrwnTJtFOZg3kAbRi5YRe7DPM'
+    api_key = '3053871126-b5ve0SlslJTv8dt0XEjBJrcZHukYTx7Om75u8MY'
+    api_secret = 'bB2BO6JaWNomsGAQGsd98q2glYdPsbVWIKJ9PJQiOOJ2N'
 
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(api_key, api_secret)
@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
     candidates={False:'Trump', True:'Clinton'}
     # Trump retrieve
-    label = False
+    label = True
 
     while 1:
         try:
