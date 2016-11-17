@@ -8,7 +8,7 @@ def insert_user_information(api_user, label, count):
     :param clinton_id:
     :return:
     '''
-
+    nb = count
     candidates = {0:trump.id, 1:clinton.id}
 
     user = {}
@@ -25,10 +25,10 @@ def insert_user_information(api_user, label, count):
         user['description'] = api_user.description
         user['label'] = label
         db.users.insert_one(user)
-        count += 1
+        nb += 1
         print('User has been inserted')
 
-    return count
+    return nb
 
 
 def insert_tweet_information(user_id):
@@ -56,7 +56,7 @@ def insert_tweet_information(user_id):
             oldest=len(alltweets)
         # keep grabbing tweets until there are no tweets left to grab
 
-        while len(new_tweets) > 0: # We retrieve all the tweets of that user until we reach the end
+        while len(new_tweets) > 0 : # We retrieve all the tweets of that user until we reach the end
 
             # all subsequent requests use the max_id param to prevent duplicates
             new_tweets = api.user_timeline(user_id=user_id, count=200, max_id=oldest)
@@ -70,7 +70,7 @@ def insert_tweet_information(user_id):
                 pass
             print('tweets')
 
-        tweet_ids=[]
+        tweet_ids = []
 
         for tweet in alltweets:
             tweet_ids.append(tweet.id)
@@ -108,9 +108,9 @@ def extract_information(label, nb_users):
                 if api_user.statuses_count > 100:
                     count = insert_user_information(api_user, label, count) # Condition inserted inside
                     print(count)
+                del api_user
             else:
                 break
-
 
 if __name__ == "__main__":
     import logging
@@ -118,37 +118,43 @@ if __name__ == "__main__":
     import time
     import logging
     from pymongo import MongoClient
-    start=time.time()
-    client = MongoClient()
+    import json
 
+    import json
+
+    filename = "C:/token/access.json"
+    with open(filename) as file:
+        token = json.load(file)
+
+    auth = tweepy.OAuthHandler(token["consumer_key"], token["consumer_secret"])
+    auth.set_access_token(token["access_key"], token["access_secret"])
+
+    start = time.time()
+    client = MongoClient()
     db = client['tweepoll']
 
-
-
-    consumer_key = 'JcT9eaN3Fc3f9POcFXF4F2wIM'
-    consumer_secret = 'OkpbxaK7e1epLyhZalzdvSlAJMf1O99F3F4wTmGscfzS85ZI82'
-    api_key = '792840280848343042-UZ6JqLW0jHbYdPo2h0ODQtS1gdsYJwN'
-    api_secret = 'CpnWsqioUGqrrQTkWTxKEHWNsxXmrN1wkRx8O5ELR8mzF'
-
-    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-    auth.set_access_token(api_key, api_secret)
     api = tweepy.API(auth, wait_on_rate_limit=True)
 
     trump = api.get_user('realDonaldTrump')
     clinton = api.get_user('HillaryClinton')
 
-    candidates={False:'Trump', True:'Clinton'}
+    candidates = {False:'Trump', True:'Clinton'}
     # Trump retrieve
     label = False
-
+    start_time = time.time()
     while 1:
+     
         try:
+            if time.time() - start_time > 3600:
+                api.update_status('''US Information Extraction :\n Users in the base : %d \n Tweets in the base : %d \n ''' %(db.users.find().count(),db.tweets.find().count()))
+                start_time = time.time()
             extract_information(label, 5000)
+            print('bi')
         except Exception as e:
+
             logging.error(e, exc_info=True)
             print('I sleep')
             time.sleep(60)
-
             pass
 
     print(time.time()-start)
