@@ -67,11 +67,7 @@ def insert_tweet_information(user_id):
             except IndexError:
                 pass
 
-
-        tweet_ids=[]
-
         for tweet in alltweets:
-            tweet_ids.append(tweet.id)
 
             tweet_object = {}
             tweet_object['tweet_id'] = tweet.id
@@ -81,8 +77,9 @@ def insert_tweet_information(user_id):
             tweet_object['date'] = tweet.created_at
 
             db.tweets.insert(tweet_object)
-        print('%d tweets has been added' % len(tweet_ids))
-        return tweet_ids
+        print('tweets has been added')
+        del alltweets
+        del new_tweets
     except tweepy.error.TweepError:
         return []
 
@@ -116,20 +113,20 @@ if __name__ == "__main__":
     import time
     import logging
     from pymongo import MongoClient
+    import json
+
+
+    filename = "C:/token/access.json"
+    with open(filename) as file:
+        token = json.load(file)
     start=time.time()
     client = MongoClient()
 
     db = client['tweepoll']
 
 
-
-    consumer_key = 'jIX7CbqguhKU7Ve816NI0P65I'
-    consumer_secret = 'ktM49siWjPbR0cwmgtKCT2VKsyrwnTJtFOZg3kAbRi5YRe7DPM'
-    api_key = '3053871126-b5ve0SlslJTv8dt0XEjBJrcZHukYTx7Om75u8MY'
-    api_secret = 'bB2BO6JaWNomsGAQGsd98q2glYdPsbVWIKJ9PJQiOOJ2N'
-
-    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-    auth.set_access_token(api_key, api_secret)
+    auth = tweepy.OAuthHandler(token["consumer_key"], token["consumer_secret"])
+    auth.set_access_token(token["access_key"], token["access_secret"])
     api = tweepy.API(auth, wait_on_rate_limit=True)
 
     trump = api.get_user('realDonaldTrump')
