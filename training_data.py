@@ -1,30 +1,48 @@
-def insert_user_information(api_user, count):
+
+def insert_user_information(api_user, label, count):
     """
     Insert all user-related information in the user dcollection
     :param api_user: user object from twitter API
+    :param label:0 or 1, depending wether he is a Hillary follower or a Trump follower (Hillary = 1, Trump = 0)
     :param count: count of users that have been inserted in the base since the last restart/error.
     :return: count + 1 if the user is inserted, count if he has not been inserted
     Especially useful for keeping track on the process.
     """
 
 
-    # Initialization of the document that is going to be inserted in the base
+    #Since we need to run the same code on two different machines (and for two different candidates,
+    # we try to make sure that there are only a few things to change to go from one candidate to the other
+    candidates = {0:trump.id, 1:clinton.id}
+
+    #Initialization of the document that is going to be inserted in the base
     user = {}
     user['id'] = api_user.id
 
-    user['location'] = api_user.location
-    user['nb_tweets'] = api_user.statuses_count
-    user['nb_followers'] = api_user.followers_count
-    user['description'] = api_user.description
-    db.users.insert_one(user)
+    #Check if the user also follows the other candidate
+    #(if he follows the other candidate as well, he will not be added)
+    is_following_other = api.show_friendship(source_id=user['id'], target_id=candidates[1-label])[0].following
+
+    #The conditions for a user to be added is that:
+    #he does not follow the other candidate, his tweets are in English, and he is not already in the database
+    if not is_following_other and api_user.lang == 'en' and not [i for i in db.users.find({'id': user['id']})]:
+        print('Start insertion process')
 
 
-    # Call a function to insert this user's tweet as well
-    insert_tweet_information(user['id'])
 
-    # Add 1 to count because a user has been inserted and show some logs
-    count += 1
-    print('User has been inserted')
+        #Fill the document that is going to be inserted and insert it
+        user['location'] = api_user.location
+        user['nb_tweets'] = api_user.statuses_count
+        user['nb_followers'] = api_user.followers_count
+        user['description'] = api_user.description
+        user['label'] = label
+        db.users.insert_one(user)
+
+        #Call a function to insert this user's tweet as well
+        insert_tweet_information(user['id'])
+
+        #Add 1 to count because a user has been inserted and show some logs
+        count += 1
+        print('User has been inserted')
 
     return count
 
@@ -51,10 +69,10 @@ def insert_tweet_information(user_id):
         try:
             oldest = alltweets[-1].id - 1
         except IndexError:
-            oldest = len(alltweets)
+            oldest=len(alltweets)
 
         # keep grabbing tweets until there are no tweets left to grab
-        while len(new_tweets) > 0:  # We retrieve all the tweets of that user until we reach the end
+        while len(new_tweets) > 0 : # We retrieve all the tweets of that user until we reach the end
 
             # all subsequent requests use the max_id param to prevent duplicates
             new_tweets = api.user_timeline(user_id=user_id, count=200, max_id=oldest)
@@ -71,6 +89,7 @@ def insert_tweet_information(user_id):
 
         # Build the documents which are going to be inserted in the database and insert them
         for tweet in alltweets:
+
             tweet_object = {}
             tweet_object['tweet_id'] = tweet.id
             tweet_object['user_id'] = user_id
@@ -79,13 +98,13 @@ def insert_tweet_information(user_id):
             tweet_object['date'] = tweet.created_at
 
             db.tweets.insert(tweet_object)
-        print('Total: %d tweets added' % len(alltweets))
+        print('Total: %d tweets has been added' % len(alltweets))
 
     except tweepy.error.TweepError:
         pass
 
 
-def extract_information(nb_users):
+def extract_information(label, nb_users):
     """
     Extract information from twitter to fill both databases
     The functions calls the function insert_user_information
@@ -97,12 +116,13 @@ def extract_information(nb_users):
     # Initialize the count of users, both to be able to choose the number of users we want in one go
     # and to get some logs about the evolution of the process
     count = 0
+    candidates = {0:trump, 1:clinton}
 
     # Repeat until we have reached the right number of users
     while count < nb_users:
 
-        # Each user we take is initially from twitter followers
-        followers = twitter_account.followers_ids()
+        # Each user we take is initially a follower of one candidate
+        followers = candidates[label].followers_ids()
 
         # Then we loop on all user in the followers
         for user in followers:
@@ -110,24 +130,14 @@ def extract_information(nb_users):
                 # Tweeter object that describes a user
                 api_user = api.get_user(id=user)
 
-                # The users that are selected verify all those conditions:
-                # Have more than 100 tweets
-                # In timezone US
-                # Language is english
-                # Have not already been inserted
-                if len(api_user.location) > 0 \
-                        and api_user.statuses_count > 100 \
-                        and not (api_user.time_zone is None) \
-                        and 'US' in api_user.time_zone \
-                        and api_user.lang == 'en' \
-                        and not [i for i in db.users.find({'id': user})]:
-                    count = insert_user_information(api_user, count)
+                # Only the users which have more than 100 tweets are selected
+                if api_user.statuses_count > 100:
+                    count = insert_user_information(api_user, label, count)
                     print(count)
                 # We delete the twitter object to make sure the RAM is not saturated
                 del api_user
             else:
                 break
-
 
 # Script's main
 if __name__ == "__main__":
@@ -159,9 +169,14 @@ if __name__ == "__main__":
     # So if this limit is reached, the API is just going to wait until it is allowed to load data again
     api = tweepy.API(auth, wait_on_rate_limit=True)
 
-    # Twitter's account
-    # We use twitter account to get users which we don't know a priori
-    twitter_account = api.get_user('Twitter')
+    # Candidates Tweeter's profile
+    trump = api.get_user('realDonaldTrump')
+    clinton = api.get_user('HillaryClinton')
+    candidates = {False:'Trump', True:'Clinton'}
+
+    # This script is loading Donald Trump's followers and tweets.
+    # To load Hillary Clinton's followers this label has just to be switched on
+    label = False
 
     # To get regular information about the state of the process it is necessary to keep track of the time
     start_time = time.time()
@@ -171,7 +186,7 @@ if __name__ == "__main__":
     # This is especially useful to catch errors we can't really predict such as
     # Internet interruption, or special Twitter errors
     while 1:
-
+     
         try:
 
             # This part makes sure that we can inform about the state of the process
@@ -180,11 +195,11 @@ if __name__ == "__main__":
             # (defined by the token). This allows checking the process on our mobile phone
             if time.time() - start_time > 3600:
                 api.update_status('''US Information Extraction :\n Users in the base : %d
-                \n Tweets in the base : %d \n ''' % (db.users.find().count(), db.tweets.find().count()))
+                \n Tweets in the base : %d \n ''' %(db.users.find().count(),db.tweets.find().count()))
                 start_time = time.time()
 
             # Call the function that insert the given number of profiles in the database
-            extract_information(5000)
+            extract_information(label, 5000)
 
         # This is the part that handles unpredicted errors
         # Retry after a minute but still print the stacktrace
@@ -194,4 +209,4 @@ if __name__ == "__main__":
             time.sleep(60)
             pass
 
-    print(time.time() - start_time)
+    print(time.time()-start_time)
