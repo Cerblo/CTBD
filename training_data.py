@@ -16,15 +16,15 @@ def insert_user_information(api_user, label, count):
 
     #Initialization of the document that is going to be inserted in the base
     user = {}
-    user['id'] = api_user.id
+    user['_id'] = api_user.id
 
     #Check if the user also follows the other candidate
     #(if he follows the other candidate as well, he will not be added)
-    is_following_other = api.show_friendship(source_id=user['id'], target_id=candidates[1-label])[0].following
+    is_following_other = api.show_friendship(source_id=user['_id'], target_id=candidates[1-label])[0].following
 
     #The conditions for a user to be added is that:
     #he does not follow the other candidate, his tweets are in English, and he is not already in the database
-    if not is_following_other and api_user.lang == 'en' and not [i for i in db.users.find({'id': user['id']})]:
+    if not is_following_other and api_user.lang == 'en':
         print('Start insertion process')
 
 
@@ -37,10 +37,10 @@ def insert_user_information(api_user, label, count):
         user['label'] = label
         db.users.insert_one(user)
 
-        #Call a function to insert this user's tweet as well
-        insert_tweet_information(user['id'])
+        # Call a function to insert this user's tweet as well
+        insert_tweet_information(user['_id'])
 
-        #Add 1 to count because a user has been inserted and show some logs
+        # Add 1 to count because a user has been inserted and show some logs
         count += 1
         print('User has been inserted')
 
@@ -91,7 +91,7 @@ def insert_tweet_information(user_id):
         for tweet in alltweets:
 
             tweet_object = {}
-            tweet_object['tweet_id'] = tweet.id
+            tweet_object['_id'] = tweet.id
             tweet_object['user_id'] = user_id
             tweet_object['message'] = tweet.text
             tweet_object['hashtag'] = tweet.entities['hashtags']
@@ -162,7 +162,7 @@ if __name__ == "__main__":
     # Initializing the connection to the mongo database
     # This requires the mongo instance to be running
     client = MongoClient()
-    db = client['tweepoll2']
+    db = client['tweepoll_v2']
 
     # Main Twitter object to make the queries
     # Note that the API also provides a sleep method if the Twitter Rate Limit is reached
@@ -176,7 +176,7 @@ if __name__ == "__main__":
 
     # This script is loading Donald Trump's followers and tweets.
     # To load Hillary Clinton's followers this label has just to be switched on
-    label = False
+    label = True
 
     # To get regular information about the state of the process it is necessary to keep track of the time
     start_time = time.time()
@@ -193,7 +193,7 @@ if __name__ == "__main__":
             # even if we don't have access to our computer
             # Whenever the time elapsed is greater than an hour, a status is published on the twitter account
             # (defined by the token). This allows checking the process on our mobile phone
-            if time.time() - start_time > 3600:
+            if time.time() - start_time > 7200:
                 api.update_status('''US Information Extraction :\n Users in the base : %d
                 \n Tweets in the base : %d \n ''' %(db.users.find().count(),db.tweets.find().count()))
                 start_time = time.time()
@@ -206,7 +206,7 @@ if __name__ == "__main__":
         except Exception as e:
             logging.error(e, exc_info=True)
             print('I sleep')
-            time.sleep(60)
+            time.sleep(1)
             pass
 
     print(time.time()-start_time)

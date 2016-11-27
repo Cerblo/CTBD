@@ -152,7 +152,7 @@ if __name__ == "__main__":
     # Initializing the connection to the mongo database
     # This requires the mongo instance to be running
     client = MongoClient()
-    db = client['tweepoll2']
+    db = client['sample']
 
     # Main Twitter object to make the queries
     # Note that the API also provides a sleep method if the Twitter Rate Limit is reached
@@ -180,7 +180,7 @@ if __name__ == "__main__":
             # (defined by the token). This allows checking the process on our mobile phone
             if time.time() - start_time > 3600:
                 api.update_status('''US Information Extraction :\n Users in the base : %d
-                \n Tweets in the base : %d \n ''' % (db.users.find().count(), db.tweets.find().count()))
+                \n Tweets in the sample base : %d \n ''' % (db.users.find().count(), db.tweets.find().count()))
                 start_time = time.time()
 
             # Call the function that insert the given number of profiles in the database
