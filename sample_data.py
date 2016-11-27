@@ -123,6 +123,10 @@ def extract_information(nb_users):
                         and not [i for i in db.users.find({'id': user})]:
                     count = insert_user_information(api_user, count)
                     print(count)
+
+                #More logs
+                else:
+                    print('User %d: Irrelevant user' % count)
                 # We delete the twitter object to make sure the RAM is not saturated
                 del api_user
             else:
@@ -153,6 +157,7 @@ if __name__ == "__main__":
     # This requires the mongo instance to be running
     client = MongoClient()
     db = client['sample']
+
 
     # Main Twitter object to make the queries
     # Note that the API also provides a sleep method if the Twitter Rate Limit is reached

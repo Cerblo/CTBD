@@ -37,7 +37,6 @@ def insert_user_information(api_user, label, count):
         user['label'] = label
         db.users.insert_one(user)
 
-        # Call a function to insert this user's tweet as well
         insert_tweet_information(user['_id'])
 
         # Add 1 to count because a user has been inserted and show some logs
@@ -98,7 +97,7 @@ def insert_tweet_information(user_id):
             tweet_object['date'] = tweet.created_at
 
             db.tweets.insert(tweet_object)
-        print('Total: %d tweets has been added' % len(alltweets))
+        print('Total: %d tweets have been added' % len(alltweets))
 
     except tweepy.error.TweepError:
         pass
@@ -174,8 +173,7 @@ if __name__ == "__main__":
     clinton = api.get_user('HillaryClinton')
     candidates = {False:'Trump', True:'Clinton'}
 
-    # This script is loading Donald Trump's followers and tweets.
-    # To load Hillary Clinton's followers this label has just to be switched on
+
     label = True
 
     # To get regular information about the state of the process it is necessary to keep track of the time
