@@ -6,9 +6,6 @@ import time
 client = MongoClient()
 db = client['work_db']
 
-client = MongoClient()
-db = client['work_db']
-
 start = time.time()
 
 map = Code("""function(){
@@ -30,7 +27,7 @@ reduce = Code("""function(key, values){
     return total;}
     """)
 
-db.tweets.map_reduce(map, reduce, "all_words_count")
+#db.tweets.map_reduce(map, reduce, "all_words_count")
 
 print('All_words_count collection created in %f' % (time.time() - start))
 
@@ -56,7 +53,7 @@ reduce_users = Code("""function(key, values){
     return total;}
     """)
 
-db.tweets.map_reduce(map_users, reduce_users, "words_occurences_by_user")
+#db.tweets.map_reduce(map_users, reduce_users, "words_occurences_by_user")
 
 print('Words_occurences_by_user collection created in %f' % (time.time() - start))
 
@@ -76,7 +73,7 @@ query = [
     {'$sort': {'value':-1}},
     {'$limit': 1000}]
 
-db.relevant_words.insert(db.all_words_count.aggregate(query))
+#db.relevant_words.insert(db.all_words_count.aggregate(query))
 
 ########################
 # get words which belong to one of the two dictionary
@@ -104,7 +101,7 @@ query = [
     {'$project': {'_id':1, 'value':1}}
 ]
 
-db.dataset.insert(db.words_by_user.aggregate(query))
+db.dataset.insert(db.words_occurences_by_user.aggregate(query))
 
 
 #############################
