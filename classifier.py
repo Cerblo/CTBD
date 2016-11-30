@@ -31,7 +31,7 @@ def build_word_bag(dbname):
     client = MongoClient()
     db = client[dbname]
 
-    bag_of_words = db.words_occurences_by_user.find().limit(100000)
+    bag_of_words = db.dataset.find()
 
     words = {}
     words_indexes = {}
@@ -47,11 +47,13 @@ def build_word_bag(dbname):
         if word not in words:
             words[word] = len(words)
 
-    M = np.array([[0 for i in words] for j in range(len(user_ids))])
+    M = np.zeros((len(user_ids), len(words)))
+
+    bag_of_words = db.dataset.find()
     # Second passage : putting values into the empty matrix
     for doc in bag_of_words:
-        user = doc['_id'][0]
-        word = doc['_id'][1]
+        user = doc['_id']['user_id']
+        word = doc['_id']['word']
         count = doc['value']
 
         M[(user_ids[user], words[word])] = count
@@ -75,6 +77,7 @@ if __name__ == '__main__':
     db = client[dbname]
 
     data = build_word_bag(dbname)
+    """
     bag_of_words = data[0]
     word_indexes = data[1]
     user_ids = data[2]
@@ -92,3 +95,5 @@ if __name__ == '__main__':
     print(targets)
 
     score, prediction = classifier(bag_of_words, targets)
+
+    """
