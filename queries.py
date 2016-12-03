@@ -6,7 +6,7 @@ import time
 client = MongoClient()
 db = client['tweepoll_v2']
 
-# start = time.time()
+start = time.time()
 #
 # map = Code("""function(){
 #         var text = this.message
@@ -73,7 +73,8 @@ query = [
     {'$sort': {'value':-1}},
     {'$limit': 5000}]
 
-db.relevant_words.insert(db.all_words_count.aggregate(query))
+db.relevant_words_v2.insert(db.all_words_count.aggregate(query))
+print('relevant words done in %f' % (time.time() - start))
 
 ########################
 # get words which belong to one of the two dictionary
@@ -91,7 +92,7 @@ query = [
     {'$project': {'_id':1, 'value':1}}
 ]
 
-db.dataset.insert(db.words_occurences_by_user.aggregate(query))
+db.dataset_v2.insert(db.words_occurences_by_user.aggregate(query))
 
 
 #############################
