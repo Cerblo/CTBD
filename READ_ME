@@ -1,0 +1,15 @@
+TWEEPOLL
+
+This repository contains all the necessary pieces of codes to our project.
+Please see the report for more information.
+
+Here is a description of each file:
+- Tweepoll - Final Report: Report that describes in detail our project
+- training_data: data capture (from twitter) for the training set
+- sample_data: data capture for the sample set. This set is used to make the actual poll.
+- queries: mongodb queries to perform the bag of words (including the cleaning process)
+- dataset_building: Construction of the training dataset from the mongodb bag of words
+- dataset_building_sample: Construction of the sample dataset from the mongodb bag of words
+- classifier: Comparison of different classifiers on the dataset
+- prediction: Final prediction on the sample
+- stop_words: The chosen list of stop_words for this project
