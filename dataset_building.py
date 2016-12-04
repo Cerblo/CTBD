@@ -114,15 +114,15 @@ if __name__ == '__main__':
     # Serialization of our data: previous operations are very time consuming. Hence we did it once and afterwards used
     # the serialized objects for the learning
     import pickle
-    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/bow.p", "wb") as f:
+    with open("C:/data/serialized/bow.p", "wb") as f:
         pickle.dump(bag_of_words, f)
-    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/user_indexes.p", "wb") as f:
+    with open("C:/data/serialized/user_indexes.p", "wb") as f:
         pickle.dump(user_indexes, f)
-    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/user_ids.p", "wb") as f:
+    with open("C:/data/serialized/user_ids.p", "wb") as f:
         pickle.dump(user_ids, f)
-    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/words_indexes.p", "wb") as f:
+    with open("C:/data/serialized/words_indexes.p", "wb") as f:
         pickle.dump(word_indexes, f)
-    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/words_ids.p", "wb") as f:
+    with open("C:/data/serialized/words_ids.p", "wb") as f:
         pickle.dump(words, f)
-    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/labels.p", "wb") as f:
+    with open("C:/data/serialized/labels.p", "wb") as f:
         pickle.dump(targets, f)

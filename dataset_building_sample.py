@@ -30,7 +30,7 @@ def build_word_bag(dbname):
         if user not in user_ids:
             user_ids[user] = len(user_ids)
 
-    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/words_ids.p", "rb") as f:
+    with open("C:/data/serialized/words_ids.p", "rb") as f:
         words = pickle.load(f)
 
     # As we have now the exact length of the matrix, we will fill out the matrix with occurrences
@@ -99,13 +99,13 @@ if __name__ == '__main__':
     # Serialization of our data: previous operations are very time consuming. Hence we did it once and afterwards used
     # the serialized objects for the learning
     import pickle
-    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/bow_sample.p", "wb") as f:
+    with open("C:/data/serialized/bow_sample.p", "wb") as f:
         pickle.dump(bag_of_words, f)
-    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/user_indexes_sample.p", "wb") as f:
+    with open("C:/data/serialized/user_indexes_sample.p", "wb") as f:
         pickle.dump(user_indexes, f)
-    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/user_ids_sample.p", "wb") as f:
+    with open("C:/data/serialized/user_ids_sample.p", "wb") as f:
         pickle.dump(user_ids, f)
-    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/words_indexes_sample.p", "wb") as f:
+    with open("C:/data/serialized/words_indexes_sample.p", "wb") as f:
         pickle.dump(word_indexes, f)
-    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/words_ids_sample.p", "wb") as f:
+    with open("C:/data/serialized/words_ids_sample.p", "wb") as f:
         pickle.dump(words, f)

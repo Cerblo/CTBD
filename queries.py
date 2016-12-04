@@ -34,7 +34,7 @@ reduce = Code("""function(key, values){
     return total;}
     """)
 
-#db.tweets.map_reduce(map, reduce, "all_words_count")
+db.tweets.map_reduce(map, reduce, "all_words_count")
 # This query provides Mongo with the map and reduce functions,
 # aside with the name of the new collection
 
@@ -66,7 +66,7 @@ reduce_users = Code("""function(key, values){
     return total;}
     """)
 
-#db.tweets.map_reduce(map_users, reduce_users, "words_occurences_by_user")
+db.tweets.map_reduce(map_users, reduce_users, "words_occurences_by_user")
 
 
 ################################################################################
@@ -91,7 +91,7 @@ query = [
     {'$sort': {'value':-1}},
     {'$limit': 5000}]
 
-#db.relevant_words_v2.insert(db.all_words_count.aggregate(query))
+db.relevant_words.insert(db.all_words_count.aggregate(query))
 
 ###########################################################################
 # Creation of the final dataset
