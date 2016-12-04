@@ -19,7 +19,7 @@ def build_word_bag(dbname):
     db = client[dbname]
 
     # Extracting the bag of words from Mongo as a simple cursor
-    bag_of_words = db.dataset_stop.find()
+    bag_of_words = db.dataset.find()
 
     # Data structure that will store our data
     words = {}
@@ -40,7 +40,7 @@ def build_word_bag(dbname):
     # As we have now the exact length of the matrix, we will fill out the matrix with occurrences
     M = np.zeros((len(user_ids), len(words))) # Initialization with zeros everywhere
 
-    bag_of_words = db.dataset_stop.find() # We have to extract the cursor again, as the previous one is empty now.
+    bag_of_words = db.dataset.find() # We have to extract the cursor again, as the previous one is empty now.
     for doc in bag_of_words:
         # Values of the Mongo bag of words: row, column, value
         user = doc['_id']['user_id']
