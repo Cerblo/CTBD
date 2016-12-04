@@ -1,4 +1,13 @@
 def build_word_bag(dbname):
+
+    '''
+
+    :param dbname: name of the database we will extract data from
+    :return: This function extracts the bag of words held in MongoDB into a Python object.
+    It returns the bag of words, aside with user ids and work ids (that's to say the lines and columns values), in
+    order to use it in our machine learning phase
+
+    '''
     from pymongo import MongoClient
     import time
     import numpy as np
@@ -6,15 +15,17 @@ def build_word_bag(dbname):
     client = MongoClient()
     db = client[dbname]
 
+    # Extracting the bag of words from Mongo as a simple cursor
     bag_of_words = db.dataset_stop.find()
 
+    # Data structure that will store our data
     words = {}
     words_indexes = {}
     user_ids = {}
     user_indexes = {}
 
-    # First passage : fulfilling the list of words of the bag of words.
-    i=0
+    # First loop : fulfilling the list of words of the bag of words.
+
     for doc in bag_of_words:
         user = doc['_id']['user_id']
         word = doc['_id']['word']
@@ -22,24 +33,21 @@ def build_word_bag(dbname):
             user_ids[user] = len(user_ids)
         if word not in words:
             words[word] = len(words)
-        i += 1
-        if i%1000000 == 0:
-            print(i)
 
-    M = np.zeros((len(user_ids), len(words)))
+    # As we have now the exact length of the matrix, we will fill out the matrix with occurrences
+    M = np.zeros((len(user_ids), len(words))) # Initialization with zeros everywhere
 
-    print("Passage 1 done")
-    print('\n\n\n--------------------------\n\n\n' )
-
-    bag_of_words = db.dataset_stop.find()
-    # Second passage : putting values into the empty matrix
+    bag_of_words = db.dataset_stop.find() # We have to extract the cursor again, as the previous one is empty now.
     for doc in bag_of_words:
+        # Values of the Mongo bag of words: row, column, value
         user = doc['_id']['user_id']
         word = doc['_id']['word']
         count = doc['value']
 
         M[(user_ids[user], words[word])] = count
 
+    # Inversion of our data structures the dictionary (key, value) is duplicated into the same one with (value, key)
+    # instead. This will be useful in the machine learning step.
     for i in words:
         words_indexes[words[i]] = i
     for i in user_ids:
@@ -56,16 +64,12 @@ if __name__ == '__main__':
 
     np.set_printoptions(suppress=True)
 
-    dbname = 'tweepoll_sample'
+    dbname = 'tweepoll_v2'
     client = MongoClient()
     db = client[dbname]
-    start = time.time()
-    print("Start process")
-    data = build_word_bag(dbname)
 
-    print('\n\n\n--------------------------\n\n\n' )
-    print('Bag of words built in %f' % (time.time() - start))
-    start = time.time()
+    # Getting the data in Python
+    data = build_word_bag(dbname)
 
     bag_of_words = data[0]
     word_indexes = data[1]
@@ -73,27 +77,29 @@ if __name__ == '__main__':
     user_ids = data[3]
     words = data[4]
 
-    #Computing the sum of words for each user
+    # TF-IDF COMPUTATION
+    # At the beginning we computed it roughly by going through all lines and columns. This was much too time consuming
+    # Hence now we first compute global sums, and then compute the final value.
+
+    # Computing the sum of words for each user
     nb_words_by_user = [sum(bag_of_words[i,:]) for i in range(bag_of_words.shape[0])]
-    print('nb_words_by_user OK in %f' % (time.time() - start))
-    start = time.time()
 
-    #Computing the number of documents that contain each word
+    # Computing the number of documents that contain each word
     nb_users_by_word = [np.count_nonzero(bag_of_words[:,j]) for j in range(bag_of_words.shape[1])]
-    print('nb_users_by_word OK in %f' % (time.time() - start))
-    start = time.time()
 
-    # Qualifying words importance by dividing by the sum
+    # Computing the exact TF/IDF value, going through all the places
     for j in range(bag_of_words.shape[1]):
         for i in range(bag_of_words.shape[0]):
             value = bag_of_words[i,j]
+            # Explanation of the TF/IDF formula available in the report
             new_value = value/nb_words_by_user[i] * np.log(bag_of_words.shape[0]/nb_users_by_word[j])
             bag_of_words[i,j] = new_value
-    print('tf - idf OK in %f' % (time.time() - start))
-    start = time.time()
+
+
+    # Serialization of our data: previous operations are very time consuming. Hence we did it once and afterwards used
+    # the serialized objects for the learning
 
     import pickle
-
     with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/bow_sample.p", "wb") as f:
         pickle.dump(bag_of_words, f)
     with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/user_indexes_sample.p", "wb") as f:
@@ -105,24 +111,13 @@ if __name__ == '__main__':
     with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/words_ids_sample.p", "wb") as f:
         pickle.dump(words, f)
 
-
-    # Creation of target values
+    # Creation of the targets values. Not an obvious task as we need to align the bag of words with the right labels
     targets = np.zeros((bag_of_words.shape[0]))
 
-    for id, index in user_ids:
-        try:
-            label = db.users.find({"_id": id})[0]['label']
-            targets[index] = label
-        except:
-            print(id)
+    for id, index in user_ids.items():
+        label = db.users.find({"_id": id})[0]['label']
+        targets[index] = label
 
+    # Serialization of the targets
     with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/labels_sample.p", "wb") as f:
         pickle.dump(targets, f)
-
-    print('Serialization')
-    print(bag_of_words.shape[0])
-
-
-
-
-    print('Word bag: %f' % (time.time()- start))
