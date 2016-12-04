@@ -1,3 +1,9 @@
+from pymongo import MongoClient
+import time
+import numpy as np
+
+
+
 def build_word_bag(dbname):
 
     '''
@@ -8,9 +14,6 @@ def build_word_bag(dbname):
     order to use it in our machine learning phase
 
     '''
-    from pymongo import MongoClient
-    import time
-    import numpy as np
 
     client = MongoClient()
     db = client[dbname]
@@ -58,9 +61,6 @@ def build_word_bag(dbname):
 
 if __name__ == '__main__':
 
-    from pymongo import MongoClient
-    import time
-    import numpy as np
 
     np.set_printoptions(suppress=True)
 
@@ -70,7 +70,6 @@ if __name__ == '__main__':
 
     # Getting the data in Python
     data = build_word_bag(dbname)
-
     bag_of_words = data[0]
     word_indexes = data[1]
     user_indexes = data[2]
@@ -95,29 +94,35 @@ if __name__ == '__main__':
             new_value = value/nb_words_by_user[i] * np.log(bag_of_words.shape[0]/nb_users_by_word[j])
             bag_of_words[i,j] = new_value
 
-
-    # Serialization of our data: previous operations are very time consuming. Hence we did it once and afterwards used
-    # the serialized objects for the learning
-
-    import pickle
-    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/bow_sample.p", "wb") as f:
-        pickle.dump(bag_of_words, f)
-    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/user_indexes_sample.p", "wb") as f:
-        pickle.dump(user_indexes, f)
-    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/user_ids_sample.p", "wb") as f:
-        pickle.dump(user_ids, f)
-    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/words_indexes_sample.p", "wb") as f:
-        pickle.dump(word_indexes, f)
-    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/words_ids_sample.p", "wb") as f:
-        pickle.dump(words, f)
-
     # Creation of the targets values. Not an obvious task as we need to align the bag of words with the right labels
     targets = np.zeros((bag_of_words.shape[0]))
-
     for id, index in user_ids.items():
         label = db.users.find({"_id": id})[0]['label']
         targets[index] = label
 
-    # Serialization of the targets
-    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/labels_sample.p", "wb") as f:
+    # Make sure the dataset is correctly balanced between Hillary Clinton and Donald Trump
+    # Indeed it appears that there are less voters for Hillary Clinton than Donald Trump
+    # Hence to make sure our model has no bias toward one or the other we remove some Trump's observations
+    nb_total = len(bag_of_words)
+    bow_hillary = [bag_of_words[i] for i in range(nb_total) if targets[i] == 1]
+    bow_trump = [bag_of_words[i] for i in range(nb_total) if targets[i] == 0]
+    nb_hillary = len(bow_hillary)
+    bow_trump = bow_trump[:nb_hillary]
+    labels_final = [0 for i in range(nb_hillary)] + [1 for i in range(nb_hillary)]
+    bow_final = bow_trump + bow_hillary
+
+    # Serialization of our data: previous operations are very time consuming. Hence we did it once and afterwards used
+    # the serialized objects for the learning
+    import pickle
+    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/bow.p", "wb") as f:
+        pickle.dump(bag_of_words, f)
+    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/user_indexes.p", "wb") as f:
+        pickle.dump(user_indexes, f)
+    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/user_ids.p", "wb") as f:
+        pickle.dump(user_ids, f)
+    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/words_indexes.p", "wb") as f:
+        pickle.dump(word_indexes, f)
+    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/words_ids.p", "wb") as f:
+        pickle.dump(words, f)
+    with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/labels.p", "wb") as f:
         pickle.dump(targets, f)

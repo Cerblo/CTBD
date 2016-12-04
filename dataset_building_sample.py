@@ -98,7 +98,6 @@ if __name__ == '__main__':
 
     # Serialization of our data: previous operations are very time consuming. Hence we did it once and afterwards used
     # the serialized objects for the learning
-
     import pickle
     with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/bow_sample.p", "wb") as f:
         pickle.dump(bag_of_words, f)
@@ -110,14 +109,3 @@ if __name__ == '__main__':
         pickle.dump(word_indexes, f)
     with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/words_ids_sample.p", "wb") as f:
         pickle.dump(words, f)
-
-    # # Creation of the targets values. Not an obvious task as we need to align the bag of words with the right labels
-    # targets = np.zeros((bag_of_words.shape[0]))
-    #
-    # for id, index in user_ids.items():
-    #     label = db.users.find({"_id": id})[0]['label']
-    #     targets[index] = label
-    #
-    # # Serialization of the targets
-    # with open("C:/Users/Hippolyte/PycharmProjects/untitled/project/shared/labels_sample.p", "wb") as f:
-    #     pickle.dump(targets, f)
