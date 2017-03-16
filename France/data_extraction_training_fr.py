@@ -23,6 +23,7 @@ def insert_user_information(api_user, label, count):
 
     user = {}
     user['_id'] = api_user.id
+    
     b = create_boolean(user['_id'], label,candidates)
 
     # b is true if api_user is following the candidate label
