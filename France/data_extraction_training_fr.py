@@ -22,8 +22,8 @@ def insert_user_information(api_user, label, count):
     candidates={0:macron.id,1:lepen.id,2:hamon.id,3:fillon.id}
 
     user = {}
-    user['id'] = api_user.id
-    b = create_boolean(user['id'], label,candidates)
+    user['_id'] = api_user.id
+    b = create_boolean(user['_id'], label,candidates)
 
     # b is true if api_user is following the candidate label
     if not b and api_user.lang == 'fr':
@@ -35,7 +35,7 @@ def insert_user_information(api_user, label, count):
         user['description'] = api_user.description
         user['label'] = label
         db.users.insert_one(user)
-        insert_tweet_information(user['id'])
+        insert_tweet_information(user['_id'])
 
         count += 1
         print('User has been inserted')
@@ -166,6 +166,7 @@ if __name__ == "__main__":
 
             # This part makes sure that we can inform about the state of the process
             # even if we don't have access to our computer
+
             # Whenever the time elapsed is greater than an hour, a status is published on the twitter account
             # (defined by the token). This allows checking the process on our mobile phone
             # if time.time() - start_time > 7200:
@@ -184,5 +185,6 @@ if __name__ == "__main__":
             print('I sleep')
             time.sleep(1)
             pass
+
 
     print(time.time() - start_time)
